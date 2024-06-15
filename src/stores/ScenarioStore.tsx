@@ -1,4 +1,4 @@
-import { makeAutoObservable, runInAction } from "mobx";
+import { makeAutoObservable } from "mobx";
 import axios from "axios";
 
 export interface Scenario {
@@ -23,22 +23,18 @@ export class ScenarioStore {
     setValidScenario = (caseLine: any) => {
         const scenario = this.scenarios?.find(s => s.caseLine === caseLine);
         if (scenario) {
-            runInAction(() => {
-                if (this.validScenario) {
-                    this.validScenario.isValid = false;
-                }
-                scenario.isValid = true;
-                this.validScenario = scenario;
-            });
+            if (this.validScenario) {
+                this.validScenario.isValid = false;
+            }
+            scenario.isValid = true;
+            this.validScenario = scenario;
 
             this.saveValidScenario(scenario).catch((error) => {
                 // Revert the change if the API call fails
-                runInAction(() => {
-                    scenario.isValid = false;
-                    if (this.validScenario === scenario) {
-                        this.validScenario = null;
-                    }
-                });
+                scenario.isValid = false;
+                if (this.validScenario === scenario) {
+                    this.validScenario = null;
+                }
                 console.error("Failed to save the valid scenario: ", error);
             });
         }
@@ -53,9 +49,7 @@ export class ScenarioStore {
 
     async getScenarios() {
         const result = await axios.get('https://localhost:7206/Scenario?year=2024');
-        runInAction(() => {
-            this.scenarios = result.data;
-        });
+        this.scenarios = result.data;
         return this.scenarios;
     }
 }
